@@ -2221,7 +2221,7 @@ int main(int argc, char **argv) {
         glfwSwapBuffers(window);
         glfwPollEvents();
         if (!typing && glfwGetKey(window, CRAFT_KEY_QUIT)) {
-            break;
+            //break;
         }
     }
 
