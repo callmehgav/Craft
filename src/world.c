@@ -3,6 +3,11 @@
 #include "world.h"
 
 void create_world(int p, int q, world_func func, void *arg) {
+    //Different heights to generate different trees at
+    int low_level = 12;
+    int mid_level = 37;
+    int high_level = 56;
+
     int pad = 1;
     for (int dx = -pad; dx < CHUNK_SIZE + pad; dx++) {
         for (int dz = -pad; dz < CHUNK_SIZE + pad; dz++) {
@@ -76,30 +81,218 @@ void create_world(int p, int q, world_func func, void *arg) {
                         func(x, h, z, w * flag, arg);
                     }
                 }
-                // trees
-                int ok = SHOW_TREES;
-                if (dx - 4 < 0 || dz - 4 < 0 ||
-                    dx + 4 >= CHUNK_SIZE || dz + 4 >= CHUNK_SIZE)
-                {
-                    ok = 0;
+
+                //Generate standard trees at mid_level
+                if (h >= low_level + 7 && h <= mid_level) {
+                  int ok = SHOW_TREES;
+                  //Lower tree_frequency for more trees
+                  float tree_frequency = 0.78;
+                  if (dx - 4 < 0 || dz - 4 < 0 ||
+                      dx + 4 >= CHUNK_SIZE || dz + 4 >= CHUNK_SIZE)
+                  {
+                      ok = 0;
+                  }
+                  if (ok && simplex2(x, z, 6, 0.5, 2) > tree_frequency) {
+                      for (int y = h + 3; y < h + 8; y++) {
+                          for (int ox = -3; ox <= 3; ox++) {
+                              for (int oz = -3; oz <= 3; oz++) {
+                                  int d = (ox * ox) + (oz * oz) +
+                                      (y - (h + 4)) * (y - (h + 4));
+                                  if (d < 11) {
+                                      func(x + ox, y, z + oz, 15, arg);
+                                  }
+                              }
+                          }
+                      }
+                      for (int y = h; y < h + 7; y++) {
+                          func(x, y, z, 5, arg);
+                      }
+                  }
                 }
-                if (ok && simplex2(x, z, 6, 0.5, 2) > 0.84) {
-                    for (int y = h + 3; y < h + 8; y++) {
-                        for (int ox = -3; ox <= 3; ox++) {
-                            for (int oz = -3; oz <= 3; oz++) {
-                                int d = (ox * ox) + (oz * oz) +
-                                    (y - (h + 4)) * (y - (h + 4));
-                                if (d < 11) {
-                                    func(x + ox, y, z + oz, 15, arg);
-                                }
-                            }
-                        }
-                    }
-                    for (int y = h; y < h + 7; y++) {
+
+                //Generate palm trees at low_level
+                if (h <= low_level + 2 && h >= low_level) {
+                  //Add a random number for variety in palm tree appearances
+                  int r_num = 1;
+                  int ok = SHOW_TREES;
+                  //Lower tree_frequency for more trees
+                  float tree_frequency = 0.69 + 0.01;
+                  if (dx - 4 < 0 || dz - 4 < 0 ||
+                      dx + 4 >= CHUNK_SIZE || dz + 4 >= CHUNK_SIZE)
+                  {
+                      ok = 0;
+                  }
+                  if (ok && simplex2(x, z, 6, 0.5, 2) > tree_frequency) {
+                      //Generate the trunk
+                      func(x, h, z, 5, arg);
+                      if ((rand() % 10) + 1 <= 5) {
+                        r_num = -1;
+                      }
+                      func(x + r_num, h, z, 5, arg);
+
+                      r_num = 1;
+                      if ((rand() % 10) + 1 <= 5) {
+                        r_num = -1;
+                      }
+                      func(x, h, z + r_num, 5, arg);
+
+                      for(int y = h + 1; y < h + 4; y++) {
                         func(x, y, z, 5, arg);
-                    }
+                      }
+
+                      r_num = 1;
+                      if ((rand() % 10) + 1 <= 5) {
+                        r_num = -1;
+                      }
+
+                      r_num = 1;
+                      if ((rand() % 10) + 1 <= 5) {
+                        r_num = -1;
+                      }
+                      func(x, h + 4, z += r_num, 5, arg);
+                      x += 1;
+                      for(int i = 5; i < 7; i++) {
+                        func(x, h + i, z, 5, arg);
+                      }
+
+                      r_num = 1;
+                      if ((rand() % 10) + 1 <= 5) {
+                        r_num = -1;
+                      }
+                      for(int i = 7; i < 10; i++) {
+                        func(x, h + i, z + r_num, 5, arg);
+                      }
+
+                      //Generate the leaves
+                      //ox, oy, oz represent coordinates for the top of the trunk
+                      int ox = x;
+                      int oy = h + 8;
+                      int oz = z + r_num;
+                      func(ox, oy + 1, oz, 15, arg);
+                      func(ox, oy, oz, 15, arg);
+                      func(ox + 1, oy, oz, 15, arg);
+                      func(ox - 1, oy, oz, 15, arg);
+                      func(ox, oy, oz + 1, 15, arg);
+                      func(ox, oy, oz - 1, 15, arg);
+                      func(ox + 1, oy, oz + 1, 15, arg);
+                      func(ox + 1, oy, oz - 1, 15, arg);
+                      func(ox - 1, oy, oz + 1, 15, arg);
+                      func(ox - 1, oy, oz - 1, 15, arg);
+                      func(ox + 2, oy--, oz + 1, 15, arg);
+                      func(ox - 2, oy, oz - 1, 15, arg);
+                      func(ox + 2, oy, oz - 1, 15, arg);
+                      func(ox, oy, oz - 2, 15, arg);
+                      func(ox + 2, oy, oz + 1, 15, arg);
+                      func(ox - 2, oy, oz - 2, 15, arg);
+                      func(ox, oy, oz + 2, 15, arg);
+                      func(ox, oy - 1, oz + 3, 15, arg);
+                      func(ox - 2, oy, oz + 1, 15, arg);
+                      func(ox - 2, oy - 1, oz + 1, 15, arg);
+                      func(ox - 3, oy - 1, oz - 1, 15, arg);
+                      func(ox + 3, oy - 1, oz - 1, 15, arg);
+                      func(ox, oy - 1, oz - 3, 15, arg);
+                      func(ox + 2, oy - 1, oz + 2, 15, arg);
+                  }
+
                 }
-            }
+
+                //Generate conifers at high_level
+                if (h >= mid_level && h <= high_level + 7) {
+                  int tree_type = 0;
+                  if ((rand() % 10) + 1 <= 5) {
+                    tree_type = 1;
+                  }
+                  int ok = SHOW_TREES;
+                  //Lower tree_frequency for more trees
+                  float tree_frequency = 0.62;
+                  if (dx - 4 < 0 || dz - 4 < 0 ||
+                      dx + 4 >= CHUNK_SIZE || dz + 4 >= CHUNK_SIZE)
+                  {
+                      ok = 0;
+                  }
+                  if (ok && simplex2(x, z, 6, 0.5, 2) > tree_frequency) {
+                    if(tree_type) {
+                      for (int y = h; y < h + 9; y++) {
+                          func(x, y, z, 5, arg);
+                      }
+
+                      //Generate leaves
+                      int block = 15;
+                      int y = h + 1;
+                      int i = 0;
+                      while(i < 4) {
+                        for(int i = -1; i < 1; i++) {
+                          for(int j = -1; j < 1; j++) {
+                            func(x + i, y, z + j, block, arg);
+                            func(x - i, y, z + j, block, arg);
+                            func(x - i, y, z - j, block, arg);
+                            func(x - i, y, z + j, block, arg);
+                          }
+                        }
+                        func(x - 1, y, z + 1, block, arg);
+                        y++;
+                        if (y >= 58 && i == 3) {
+                          block = 61;
+                        }
+                        func(x - 1, y, z, block, arg);
+                        func(x + 1, y, z, block, arg);
+                        func(x, y, z - 1, block, arg);
+                        func(x, y, z + 1, block, arg);
+                        y++;
+                        i++;
+                      }
+                      func(x, y++, z, block, arg);
+                      block = 15;
+                    } else {
+                      //Generate tree with wider base
+                      for (int y = h; y < h + 8; y++) {
+                          func(x, y, z, 5, arg);
+                      }
+                      int block = 15;
+                      //Base leaf layer
+                      for(int i = -2; i < 3; i++) {
+                        for(int j = -2; j < 3; j++) {
+                          if(abs(i) + abs(j) != 4){
+                            func(x + i, h + 1, z + j, block, arg);
+                          }
+                        }
+                      }
+
+                      //Second leaf layer
+                      for(int i = -1; i < 2; i++) {
+                        for(int j = -1; j < 2; j++) {
+                          func(x + i, h + 3, z + j, block, arg);
+                        }
+                      }
+
+                      //Third leaf layer
+                      for(int i = -1; i < 2; i++) {
+                        for(int j = -1; j < 2; j++) {
+                          if(abs(i) + abs(j) != 2){
+                            func(x + i, h + 5, z + j, block, arg);
+                          }
+                        }
+                      }
+
+                      //Top leaf layer
+                      if (h + 7 >= 58) {
+                        block = 61;
+                      }
+                      for(int i = -1; i < 2; i++) {
+                        for(int j = -1; j < 2; j++) {
+                          if(abs(i) + abs(j) != 2){
+                            func(x + i, h + 7, z + j, block, arg);
+                          }
+                        }
+                      }
+                      func(x, h + 8, z, block, arg);
+
+                    }
+                  }
+                }
+
+
+          }
              //clouds
             if (SHOW_CLOUDS) {
                 for (int y = 64; y < 72; y++) {
